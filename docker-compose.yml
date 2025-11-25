@@ -1,0 +1,20 @@
+services:
+  db:
+    container_name: todoist_db
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: abhi
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: todoist_db
+    ports:
+      - "5432:5432"   # avoid exposing in production
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U abhi -d todoist_db"]
+      interval: 5s
+      retries: 5
+
+volumes:
+  db_data:
