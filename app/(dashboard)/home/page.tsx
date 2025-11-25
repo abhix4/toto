@@ -7,6 +7,7 @@ export default function Home(){
     const [title, setTitle] = React.useState("")
     const [date, setDate] = React.useState("")
     const [status, setStatus] = React.useState("pending")
+    const [tasks, setTasks] = React.useState<Array <any>>([])
     const userSession = User()
 
     
@@ -29,6 +30,7 @@ export default function Home(){
             date,
             status
         })      
+        getData()
     }
 
     const getData = async () => {
@@ -40,6 +42,8 @@ export default function Home(){
         }).then( res => res.json())
 
         console.log("all tasks",data);
+        if(data.task)
+        setTasks(data.task)
     }
 
     useEffect(() => {
@@ -69,7 +73,24 @@ export default function Home(){
             </form>
 
             {/* tasks here */}
-
+            <table className="border w-full">
+                <tbody className="flex flex-col justify-between items-center">
+                    <tr className="flex gap-4">
+                        <th>Title</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                    </tr>
+                    {
+                        tasks?.map((task: {id: number, title: string, date: string, status: string}) => (
+                            <tr key={task.id} className="flex gap-4">
+                                <td>{task.title}</td>
+                                <td>{task.date}</td>
+                                <td>{task.status}</td>
+                            </tr>
+                        ))
+                    }
+                </tbody>
+            </table>
 
         </div>
     )
