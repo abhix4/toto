@@ -15,20 +15,7 @@ type task = {
 const columnHelper = createColumnHelper<task>();
 
 
-const columns = [
-    columnHelper.accessor('title', {
-        header: 'Title',
-        cell: info => <div className="px-6 border">{info.getValue()}</div>
-    }),
-    columnHelper.accessor('date', {
-        header: "Date",
-        cell: info => <div className="px-6 border">{info.getValue()}</div>
-    }),
-    columnHelper.accessor('status', {
-        header: 'Status',
-        cell: info => <div className="px-6 border">{info.getValue()}</div>
-    })
-]
+
 
 export default function Home(){
     const [title, setTitle] = React.useState("")
@@ -40,7 +27,7 @@ export default function Home(){
    
     const handleAddTask = (e: React.FormEvent) => {
         e.preventDefault();  
-        mutation.mutate()
+        addMutation.mutate()
     }
 
     const getData = async () => {
@@ -73,7 +60,7 @@ export default function Home(){
         enabled: !!userSession?.user.id
     })
 
-    const mutation = useMutation({
+    const addMutation = useMutation({
         mutationFn: () => {
             const data = fetch("/api/tasks",{
                 method:"POST",
@@ -94,15 +81,56 @@ export default function Home(){
         }
 
     })
+
+     const deleteMutation = useMutation({
+        mutationFn: (taskId: number) => {
+            const data = fetch("/api/tasks",{
+                method:"DELETE",
+                headers:{
+                    "content-type":"application/json"
+                },
+                body:  JSON.stringify({
+                    taskId: taskId
+                })
+            }).then(res => res.json())
+            return data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['todos'] });
+        }
+
+    })
+    
+    const columns = [
+    columnHelper.accessor('title', {
+        header: 'Title',
+        cell: info => <div className="px-6 border">{info.getValue()}</div>
+    }),
+    columnHelper.accessor('date', {
+        header: "Date",
+        cell: info => <div className="px-6 border">{info.getValue()}</div>
+    }),
+    columnHelper.accessor('status', {
+        header: 'Status',
+        cell: info => <div className="px-6 border">{info.getValue()}</div>
+    }),
+    columnHelper.accessor('id', {
+        header: 'Actions',
+        cell: info => <div className="px-6 border text-red-500 cursor-pointer"  onClick={() => deleteMutation.mutate(info.getValue())}>Delete</div>,
+        
+    })
+]
     
     const table = useReactTable({
         data: data || [],
         columns,
         getCoreRowModel: getCoreRowModel()
     })
+
+
     if(userSession?.session && data)
     return (
-        <div className="w-96 m-auto">
+        <div className="w-96 m-auto py-20">
             <h1 className="text-xl my-12">Dashboard</h1>
             {/* add task section */}
             <form action="" className="flex flex-col gap-2" onSubmit={handleAddTask}>
@@ -119,7 +147,7 @@ export default function Home(){
             </form>
 
             {/* tasks here */}
-            {
+            {/* {
                 data && data.length > 0 ? (
                          <table className="border w-full">
                 <tbody className="flex flex-col justify-between items-center">
@@ -140,9 +168,9 @@ export default function Home(){
                 </tbody>
             </table>
                 ): null
-            }
+            } */}
 
-            {/* <table >
+            <table >
                 <thead>
                 {
                     table.getHeaderGroups().map(headerGroup => (
@@ -177,7 +205,7 @@ export default function Home(){
                         ))
                     }
                 </tbody>
-            </table> */}
+            </table>
 
         </div>
     )
