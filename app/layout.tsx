@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Poppins } from "next/font/google";
 import "./globals.css";
 import { QueryClientWrapperProvider } from "@/lib/QueryClientProvider";
 
@@ -12,6 +12,12 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
+
+const poppins = Poppins({
+  weight: ["400"],
+  subsets: ["latin"],
+  variable: "--font-poppins",
+})
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -26,7 +32,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${poppins.className}  antialiased`}
       >
         <QueryClientWrapperProvider>
         {children}

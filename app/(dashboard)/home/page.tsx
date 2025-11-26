@@ -2,6 +2,7 @@
 import { User } from "@/hooks/getUser";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createColumnHelper, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
+import { Trash2 } from "lucide-react";
 
 import React, { useEffect } from "react";
 
@@ -21,7 +22,7 @@ export default function Home(){
     const [title, setTitle] = React.useState("")
     const [date, setDate] = React.useState("")
     const [status, setStatus] = React.useState("pending")
-    const [tasks, setTasks] = React.useState<Array <any>>([])
+    // const [tasks, setTasks] = React.useState<Array <any>>([])
     const userSession = User();
     const queryClient =  useQueryClient();
    
@@ -40,7 +41,7 @@ export default function Home(){
 
         console.log("all tasks",data);
         if(data.task)
-        setTasks(data.task)
+        // setTasks(data.task)
 
         return data.task
     }
@@ -116,7 +117,7 @@ export default function Home(){
     }),
     columnHelper.accessor('id', {
         header: 'Actions',
-        cell: info => <div className="px-6 border text-red-500 cursor-pointer"  onClick={() => deleteMutation.mutate(info.getValue())}>Delete</div>,
+        cell: info => <div className="px-6 border hover:text-red-500 cursor-pointer"  onClick={() => deleteMutation.mutate(info.getValue())}><Trash2 size={22} className="mx-auto"/></div>,
         
     })
 ]
@@ -130,10 +131,11 @@ export default function Home(){
 
     if(userSession?.session && data)
     return (
-        <div className="w-96 m-auto py-20">
-            <h1 className="text-xl my-12">Dashboard</h1>
+        <div className="w-5xl flex items-start gap-16 m-auto py-20">
+            <div className="border p-4">
+                    <h1 className="text-3xl ">Dashboard</h1>
             {/* add task section */}
-            <form action="" className="flex flex-col gap-2" onSubmit={handleAddTask}>
+            <form action="" className="flex flex-col gap-2 mt-12" onSubmit={handleAddTask}>
                 <label htmlFor="task">Task</label>
                 <input type="text" id="task" value={title} onChange={(e) => setTitle(e.target.value)}  className="border p-2 mt-4" />
                 <label htmlFor="date">Date</label>
@@ -146,6 +148,7 @@ export default function Home(){
                 <button type="submit" className="border p-2 mt-4">Add Task</button>
             </form>
 
+            </div>
             {/* tasks here */}
             {/* {
                 data && data.length > 0 ? (
@@ -170,7 +173,8 @@ export default function Home(){
                 ): null
             } */}
 
-            <table >
+            <div className="border p-4">
+                 <table className="mt-4">
                 <thead>
                 {
                     table.getHeaderGroups().map(headerGroup => (
@@ -206,6 +210,7 @@ export default function Home(){
                     }
                 </tbody>
             </table>
+            </div>
 
         </div>
     )
