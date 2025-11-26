@@ -1,5 +1,6 @@
 'use client'
 import { User } from "@/hooks/getUser";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createColumnHelper, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 
 import React, { useEffect } from "react";
@@ -35,32 +36,11 @@ export default function Home(){
     const [status, setStatus] = React.useState("pending")
     const [tasks, setTasks] = React.useState<Array <any>>([])
     const userSession = User();
-
-    const table = useReactTable({
-        data: tasks,
-        columns,
-        getCoreRowModel: getCoreRowModel()
-    })
+    const queryClient =  useQueryClient();
+   
     const handleAddTask = (e: React.FormEvent) => {
         e.preventDefault();  
-        const res = fetch("/api/tasks",{
-            method:"POST",
-            headers:{
-                "content-type":"application/json"
-            },
-            body:  JSON.stringify({
-                title,
-                date,
-                status,
-                userId: userSession?.user?.id
-            })
-        })
-        console.log({
-            title,
-            date,
-            status
-        })      
-        getData()
+        mutation.mutate()
     }
 
     const getData = async () => {
@@ -74,6 +54,8 @@ export default function Home(){
         console.log("all tasks",data);
         if(data.task)
         setTasks(data.task)
+
+        return data.task
     }
 
     useEffect(() => {
@@ -85,6 +67,40 @@ export default function Home(){
     }, [userSession]);
 
 
+    const { isPending, isError, data, error } = useQuery({
+        queryKey: ['todos'],
+        queryFn: getData,
+        enabled: !!userSession?.user.id
+    })
+
+    const mutation = useMutation({
+        mutationFn: () => {
+            const data = fetch("/api/tasks",{
+                method:"POST",
+                headers:{
+                    "content-type":"application/json"
+                },
+                body:  JSON.stringify({
+                    title,
+                    date,
+                    status,
+                    userId: userSession?.user?.id
+                })
+            }).then(res => res.json())
+            return data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['todos'] });
+        }
+
+    })
+    
+    const table = useReactTable({
+        data: data || [],
+        columns,
+        getCoreRowModel: getCoreRowModel()
+    })
+    if(userSession?.session && data)
     return (
         <div className="w-96 m-auto">
             <h1 className="text-xl my-12">Dashboard</h1>
@@ -103,7 +119,9 @@ export default function Home(){
             </form>
 
             {/* tasks here */}
-            {/* <table className="border w-full">
+            {
+                data && data.length > 0 ? (
+                         <table className="border w-full">
                 <tbody className="flex flex-col justify-between items-center">
                     <tr className="flex gap-4">
                         <th>Title</th>
@@ -111,7 +129,7 @@ export default function Home(){
                         <th>Status</th>
                     </tr>
                     {
-                        tasks?.map((task: {id: number, title: string, date: string, status: string}) => (
+                        data?.map((task: {id: number, title: string, date: string, status: string}) => (
                             <tr key={task.id} className="flex gap-4">
                                 <td>{task.title}</td>
                                 <td>{task.date}</td>
@@ -120,9 +138,11 @@ export default function Home(){
                         ))
                     }
                 </tbody>
-            </table> */}
+            </table>
+                ): null
+            }
 
-            <table >
+            {/* <table >
                 <thead>
                 {
                     table.getHeaderGroups().map(headerGroup => (
@@ -157,9 +177,10 @@ export default function Home(){
                         ))
                     }
                 </tbody>
-            </table>
+            </table> */}
 
         </div>
     )
+    else return <div>Loading...</div>
 }
 
