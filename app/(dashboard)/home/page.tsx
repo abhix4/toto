@@ -1,16 +1,46 @@
 'use client'
 import { User } from "@/hooks/getUser";
+import { createColumnHelper, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 
 import React, { useEffect } from "react";
+
+type task = {
+    id: number,
+    title: string,
+    date: string,
+    status: string
+}
+
+const columnHelper = createColumnHelper<task>();
+
+
+const columns = [
+    columnHelper.accessor('title', {
+        header: 'Title',
+        cell: info => <div className="px-6 border">{info.getValue()}</div>
+    }),
+    columnHelper.accessor('date', {
+        header: "Date",
+        cell: info => <div className="px-6 border">{info.getValue()}</div>
+    }),
+    columnHelper.accessor('status', {
+        header: 'Status',
+        cell: info => <div className="px-6 border">{info.getValue()}</div>
+    })
+]
 
 export default function Home(){
     const [title, setTitle] = React.useState("")
     const [date, setDate] = React.useState("")
     const [status, setStatus] = React.useState("pending")
     const [tasks, setTasks] = React.useState<Array <any>>([])
-    const userSession = User()
+    const userSession = User();
 
-    
+    const table = useReactTable({
+        data: tasks,
+        columns,
+        getCoreRowModel: getCoreRowModel()
+    })
     const handleAddTask = (e: React.FormEvent) => {
         e.preventDefault();  
         const res = fetch("/api/tasks",{
@@ -73,7 +103,7 @@ export default function Home(){
             </form>
 
             {/* tasks here */}
-            <table className="border w-full">
+            {/* <table className="border w-full">
                 <tbody className="flex flex-col justify-between items-center">
                     <tr className="flex gap-4">
                         <th>Title</th>
@@ -90,8 +120,46 @@ export default function Home(){
                         ))
                     }
                 </tbody>
+            </table> */}
+
+            <table >
+                <thead>
+                {
+                    table.getHeaderGroups().map(headerGroup => (
+                        <tr key={headerGroup.id}>
+                            {
+                                headerGroup.headers.map(header => (
+                                    <th key={header.id} className="px-6 border">
+                                        {
+                                            flexRender(header.column.columnDef.header, header.getContext())
+                                        }
+                                    </th>
+                                ))
+                            }
+                        </tr>
+                    ))
+                }
+                </thead>
+                <tbody>
+                    {
+                        table.getRowModel().rows.map(row => (
+                            <tr key={row.id}>
+                                {
+                                    row.getVisibleCells().map(cell => (
+                                        <td key={cell.id}>
+                                            {
+                                                flexRender(cell.column.columnDef.cell, cell.getContext())
+                                            }
+                                        </td>
+                                    ))
+                                }
+                            </tr>
+                        ))
+                    }
+                </tbody>
             </table>
 
         </div>
     )
 }
+
